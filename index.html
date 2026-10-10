@@ -208,6 +208,34 @@ button:active{transform:translateY(1px) scale(.99)}
 @media(prefers-reduced-motion:reduce){.tablet,.palm,.zigzag{animation:none!important}}
 
 @media(max-width:600px){body{padding:8px 5px}main{padding:12px 8px}.alphabet{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.answers{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.glyph{min-height:45px;gap:2px}.wedge.one{border-left-width:4px;border-right-width:4px;border-top-width:14px}.wedge.ten{border-top-width:6px;border-bottom-width:6px;border-right-width:18px}}
+
+/* Ajustes para celulares: decoración visible y casilleros cómodos */
+@media (max-width: 600px) {
+  body { padding: 8px 4px !important; }
+  main {
+    padding-left: 34px !important;
+    padding-right: 34px !important;
+    overflow: visible;
+  }
+  .side-decor {
+    position: fixed;
+    width: 25px;
+    z-index: 4;
+    opacity: 1;
+  }
+  .side-decor .tablet { width: 20px; height: 36px; font-size: .58rem; letter-spacing: 0; }
+  .side-decor .palm { font-size: 21px; }
+  .side-decor .ornament { font-size: 1.15rem; }
+  .side-decor .brick { height: 5px; width: 80%; }
+  .side-art { width: 24px; opacity: .95; z-index: 2; }
+  .side-art .tablet { width: 19px; height: 35px; font-size: 10px; border-width: 2px; }
+  .side-art .palm { font-size: 18px; }
+  .side-art .zigzag { font-size: 13px; }
+  .floating-motifs { opacity: .5; }
+  .alphabet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .answers { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 </style>
 </head>
 <body>
