@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Descifrá el mensaje babilónico</title>
+<style>
+:root{--sand:#f8e8bd;--paper:#fff3d4;--ink:#382311;--blue:#123e67;--gold:#d9a640}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:Georgia,"Times New Roman",serif;background:linear-gradient(135deg,#16466b,#092b49 55%,#16466b);min-height:100vh;padding:22px 12px}
+main{position:relative;max-width:1050px;margin:auto;background:var(--sand);border:7px double #b37a2b;border-radius:16px;padding:clamp(16px,3vw,30px);box-shadow:0 10px 30px #0005}
+header{text-align:center;background:var(--paper);border:3px solid #a87837;border-radius:12px;padding:20px 12px;margin-bottom:20px}
+h1{font-size:clamp(1.8rem,5vw,3.2rem);margin:0 0 8px;text-transform:uppercase;line-height:1.05}
+h2{margin:0 0 8px;font-size:clamp(1.25rem,3vw,1.8rem);text-transform:uppercase}
+p{line-height:1.45}
+.key{display:flex;justify-content:center;align-items:center;gap:24px;flex-wrap:wrap;font-size:1.08rem;margin:12px 0 0}
+.key-item{display:flex;align-items:center;gap:8px}
+.wedge{display:inline-block;width:0;height:0;flex:0 0 auto}
+.wedge.one{border-left:5px solid transparent;border-right:5px solid transparent;border-top:17px solid #111}
+.wedge.ten{border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:22px solid #111}
+.alphabet{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:7px;margin:14px 0 26px}
+.letter{background:#fff0ce;border:1px solid #95652e;border-radius:7px;text-align:center;padding:8px 3px;box-shadow:inset 0 0 0 2px #f5dba1}
+.letter b{display:block;font-size:1.2rem}
+.letter span{display:block;font-size:1rem;margin-top:3px}
+.activity{background:#fff0ce;border:3px solid #a87837;border-radius:12px;padding:18px 12px}
+.intro{text-align:center;margin-top:0}
+.answers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:18px auto;max-width:800px}
+.answer{border:1px solid #a87837;background:#fff9e9;border-radius:8px;padding:10px 6px;text-align:center;min-width:0;display:flex;flex-direction:column;align-items:center}
+.glyph{min-height:50px;display:flex;flex-wrap:wrap;align-content:center;align-items:center;justify-content:center;gap:3px;padding:4px;margin-bottom:8px;max-width:100%}
+input{width:100%;max-width:78px;text-align:center;text-transform:uppercase;font:bold 1.2rem Georgia,serif;padding:8px 4px;border:2px solid #987044;border-radius:5px;background:white;color:#24180e}
+input:focus{outline:3px solid #d9a640}
+.word-space{grid-column:1/-1;height:0}
+button{display:block;margin:18px auto 0;padding:12px 24px;border:0;border-radius:7px;background:var(--blue);color:white;font:bold 1rem Arial,sans-serif;cursor:pointer}
+button:hover{background:#0a2b49}
+#feedback{margin:16px auto 0;text-align:center;font-size:1.15rem;font-weight:bold;min-height:1.5em}
+.hint{text-align:center;font-size:.95rem;margin-bottom:0}
+footer{text-align:center;margin-top:18px;font-weight:bold}
+
+.cta{
+  position:relative;text-align:center;margin-top:24px;padding:24px 12px 18px;
+  background:linear-gradient(135deg,#fff0c7,#f4d994);
+  border:5px double #a87837;border-radius:12px;overflow:hidden;
+  box-shadow:inset 0 0 0 4px #f9e9bd
+}
+.cta:before,.cta:after{
+  content:"𒀭 𒁹 𒂍";position:absolute;top:12px;color:#17476c;
+  font-size:clamp(1rem,3vw,1.8rem);letter-spacing:4px;opacity:.85
+}
+.cta:before{left:10px}.cta:after{right:10px}
+.cta-small{font-weight:bold;letter-spacing:2px;font-size:clamp(.9rem,2.5vw,1.2rem)}
+.cta-main{font-weight:900;font-size:clamp(1.7rem,6vw,3.2rem);line-height:1.08;margin:5px 0;color:#153e62;text-shadow:1px 2px #e7c56f}
+.cta-bottom{font-size:clamp(1rem,3vw,1.4rem);font-weight:bold;margin-top:10px}
+.cta-gift{font-weight:900;font-size:clamp(1.6rem,5.5vw,2.8rem);line-height:1.1;color:#9b211b;margin:5px 0 12px}
+.babylon-sun{font-size:2rem;color:#b27a29;line-height:1;margin-bottom:8px}
+.babylon-border{color:#17476c;letter-spacing:5px;font-size:1.2rem;border-top:3px solid #b27a29;padding-top:8px}
+.confetti-piece{position:fixed;top:-20px;z-index:9999;pointer-events:none;font-size:24px;animation:fall 2.8s ease-in forwards}
+@keyframes fall{0%{transform:translateY(-10vh) rotate(0deg);opacity:1}100%{transform:translateY(115vh) rotate(720deg);opacity:0}}
+@keyframes celebrate{0%,100%{transform:scale(1)}35%{transform:scale(1.04)}70%{transform:scale(.99)}}
+.success-pulse{animation:celebrate .65s ease-in-out 2}
+
+
+/* Decoración lateral animada inspirada en Babilonia */
+.side-decor{
+  position:fixed;top:0;bottom:0;width:clamp(34px,7vw,92px);
+  z-index:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:space-around;pointer-events:none;opacity:.96;
+  color:#e5b653;text-shadow:0 2px 2px #061b2b;
+}
+.side-left{left:0}.side-right{right:0}
+.side-decor .ornament{
+  display:block;font-size:clamp(1.3rem,3vw,2.6rem);
+  animation:floatBabylon 3.6s ease-in-out infinite;
+}
+.side-decor .ornament:nth-child(2){animation-delay:.5s}
+.side-decor .ornament:nth-child(3){animation-delay:1s}
+.side-decor .ornament:nth-child(4){animation-delay:1.5s}
+.side-decor .tablet{
+  width:clamp(30px,5vw,58px);height:clamp(43px,7vw,76px);
+  border:3px solid #8f5d2a;border-radius:7px 7px 12px 12px;
+  background:linear-gradient(135deg,#dcb66c,#f5d99b 48%,#bc8744);
+  color:#4d321a;text-shadow:none;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(.75rem,1.6vw,1.3rem);line-height:1.2;letter-spacing:2px;
+  writing-mode:vertical-rl;box-shadow:inset 0 0 0 2px #f3dca4,0 4px 8px #0005;
+  animation:tabletGlow 4s ease-in-out infinite;
+}
+.side-decor .palm{font-size:clamp(1.4rem,3vw,2.8rem);transform-origin:bottom;animation:palmSway 4s ease-in-out infinite}
+@keyframes floatBabylon{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-11px) rotate(3deg)}}
+@keyframes tabletGlow{0%,100%{transform:rotate(-4deg);filter:brightness(1)}50%{transform:rotate(4deg);filter:brightness(1.18)}}
+@keyframes palmSway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+@keyframes shimmerBrick{0%,100%{opacity:.75}50%{opacity:1}}
+.side-decor .brick{width:75%;height:8px;background:#1c5680;border:1px solid #d4a34d;border-radius:2px;animation:shimmerBrick 2.8s ease-in-out infinite}
+main{position:relative;z-index:1}
+
+
+.scribe-finale{display:none;max-width:380px;margin:18px auto 4px;padding:12px 12px 16px;text-align:center;background:linear-gradient(145deg,#fff3ce,#efd18c);border:4px double #9c6a2d;border-radius:18px;box-shadow:0 7px 0 #d2aa60,inset 0 0 0 4px #f9e8b5;position:relative;overflow:hidden}
+.scribe-finale.show{display:block;animation:scribeReveal .8s cubic-bezier(.2,1.4,.4,1) both}
+.scribe-art{width:100%;max-height:245px;overflow:visible;animation:scribeBob 2.4s ease-in-out infinite}
+.scribe-caption{font-weight:900;color:#17476c;font-size:clamp(1.05rem,3.5vw,1.35rem);margin-top:0}
+.scribe-sparkles{font-size:1.4rem;color:#a87532;animation:sparkle 1.5s ease-in-out infinite}
+.tablet-tilt{transform-origin:160px 198px;animation:tabletWrite 1.1s ease-in-out infinite alternate}
+.stylus{transform-origin:205px 168px;animation:stylusMove .35s ease-in-out infinite alternate}
+@keyframes scribeReveal{0%{opacity:0;transform:translateY(30px) scale(.7)}70%{opacity:1;transform:translateY(-5px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes scribeBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes tabletWrite{from{transform:rotate(-1deg)}to{transform:rotate(1.5deg)}}
+@keyframes stylusMove{from{transform:rotate(-5deg)}to{transform:rotate(7deg)}}
+@keyframes sparkle{0%,100%{opacity:.5;transform:scale(.95)}50%{opacity:1;transform:scale(1.08)}}
+
+/* Decoración lateral babilónica: tablillas, palmeras y ladrillos */
+.page-frame{position:relative}
+.side-art{position:absolute;top:0;bottom:0;width:64px;pointer-events:none;display:flex;flex-direction:column;justify-content:space-around;align-items:center;z-index:2;overflow:hidden}
+.side-art.left{left:0}.side-art.right{right:0}
+.tablet{width:46px;height:66px;background:linear-gradient(135deg,#d8b16b,#a87532);border:3px solid #785023;border-radius:7px;box-shadow:inset 0 0 0 3px #e9cb8e;display:flex;align-items:center;justify-content:center;color:#68431d;font-size:21px;line-height:1;transform:rotate(-4deg);animation:tabletFloat 4s ease-in-out infinite}
+.side-art.right .tablet{transform:rotate(4deg);animation-delay:-2s}
+.palm{font-size:39px;filter:drop-shadow(1px 2px 0 #a87837);animation:palmSway 3s ease-in-out infinite}
+.zigzag{color:#17476c;font-size:26px;line-height:1.3;text-shadow:1px 1px #d6a74d;animation:glow 2.8s ease-in-out infinite}
+@keyframes tabletFloat{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -7px;rotate:2deg}}
+@keyframes palmSway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes glow{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+
+.floating-motifs{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;color:#b9852e}
+.floating-motifs span{position:absolute;font-size:clamp(1rem,2.7vw,2rem);opacity:.45;animation:floatMotif 8s ease-in-out infinite}
+.floating-motifs span:nth-child(1){left:7%;top:20%}
+.floating-motifs span:nth-child(2){right:7%;top:31%;animation-delay:-2s}
+.floating-motifs span:nth-child(3){left:5%;top:62%;animation-delay:-4s}
+.floating-motifs span:nth-child(4){right:5%;top:73%;animation-delay:-1s}
+.floating-motifs span:nth-child(5){left:13%;top:85%;animation-delay:-3s}
+.floating-motifs span:nth-child(6){right:13%;top:10%;animation-delay:-5s}
+@keyframes floatMotif{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-18px) rotate(18deg)}}
+/* Escena babilónica más viva */
+body{
+ background:
+   radial-gradient(circle at 12% 8%,#f7d77d 0 2px,transparent 3px),
+   radial-gradient(circle at 85% 18%,#f7d77d 0 2px,transparent 3px),
+   linear-gradient(180deg,#6fc4df 0%,#1d6387 20%,#0b3456 60%,#09263f 100%);
+ background-size:120px 120px,170px 170px,auto;
+ animation:skyDrift 22s linear infinite;
+}
+@keyframes skyDrift{from{background-position:0 0,0 0,0 0}to{background-position:120px 120px,-170px 170px,0 0}}
+main{isolation:isolate;overflow:hidden}
+main:before{
+ content:"☀";position:absolute;top:12px;right:9%;font-size:clamp(2rem,6vw,4.5rem);
+ color:#f6c44e;text-shadow:0 0 14px #ffdf78,0 0 28px #ffcf45;
+ animation:sunPulse 4s ease-in-out infinite;z-index:0;pointer-events:none
+}
+@keyframes sunPulse{0%,100%{transform:scale(1) rotate(0);filter:brightness(1)}50%{transform:scale(1.12) rotate(15deg);filter:brightness(1.2)}}
+header,.alphabet,.activity,.cta,footer{position:relative;z-index:3}
+h1{animation:titleShine 5s ease-in-out infinite}
+@keyframes titleShine{0%,100%{text-shadow:0 0 0 transparent}50%{text-shadow:0 0 12px #e8bf61}}
+.letter{transition:transform .22s ease,box-shadow .22s ease}
+.letter:hover{transform:translateY(-5px) rotate(-1deg);box-shadow:0 7px 0 #b78b4b,0 10px 18px #54330b30}
+.answer{transition:transform .25s ease,box-shadow .25s ease}
+.answer:hover{transform:translateY(-4px);box-shadow:0 7px 0 #b78b4b}
+.tablet{position:relative}
+.tablet:after{content:"";position:absolute;inset:5px;border:1px dashed #f6dfa8;border-radius:3px;pointer-events:none}
+.side-art .tablet:nth-child(2){animation:tabletFloat 3.4s ease-in-out infinite,tabletGlow 4s ease-in-out infinite}
+@keyframes tabletGlow{0%,100%{box-shadow:inset 0 0 0 3px #e9cb8e,0 0 0 #f3c75a}50%{box-shadow:inset 0 0 0 3px #f5dfa6,0 0 15px #f3c75a}}
+.palm{transform-origin:bottom center}
+.zigzag{animation:glow 2.1s ease-in-out infinite}
+.cta{animation:ctaFloat 5s ease-in-out infinite}
+@keyframes ctaFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+button{transition:transform .18s ease,box-shadow .18s ease}
+button:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 7px 0 #081f35}
+button:active{transform:translateY(1px) scale(.99)}
+.success-pulse{animation:celebrate .65s ease-in-out 3,successGlow 1.8s ease-in-out 2!important}
+@keyframes successGlow{0%,100%{box-shadow:0 0 0 transparent}50%{box-shadow:0 0 28px #f6c44e, inset 0 0 20px #f6c44e55}}
+
+@media(max-width:650px){.side-art{width:25px;opacity:.9}.tablet{width:21px;height:38px;border-width:2px;font-size:11px;border-radius:4px}.palm{font-size:20px}.zigzag{font-size:14px}main{padding-left:clamp(26px,6vw,38px);padding-right:clamp(26px,6vw,38px)}}
+@media(prefers-reduced-motion:reduce){.tablet,.palm,.zigzag{animation:none!important}}
+
+@media(max-width:600px){
+ .side-decor{width:22px;opacity:.72}
+ .side-decor .ornament{font-size:1rem}
+ .side-decor .tablet{width:19px;height:36px;border-width:2px;font-size:.55rem;letter-spacing:0}
+ .side-decor .brick{height:5px;width:85%}
+ body{padding-left:20px;padding-right:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ .side-decor *, .cta *, .confetti-piece{animation:none!important}
+}
+
+
+
+.scribe-finale{display:none;max-width:380px;margin:18px auto 4px;padding:12px 12px 16px;text-align:center;background:linear-gradient(145deg,#fff3ce,#efd18c);border:4px double #9c6a2d;border-radius:18px;box-shadow:0 7px 0 #d2aa60,inset 0 0 0 4px #f9e8b5;position:relative;overflow:hidden}
+.scribe-finale.show{display:block;animation:scribeReveal .8s cubic-bezier(.2,1.4,.4,1) both}
+.scribe-art{width:100%;max-height:245px;overflow:visible;animation:scribeBob 2.4s ease-in-out infinite}
+.scribe-caption{font-weight:900;color:#17476c;font-size:clamp(1.05rem,3.5vw,1.35rem);margin-top:0}
+.scribe-sparkles{font-size:1.4rem;color:#a87532;animation:sparkle 1.5s ease-in-out infinite}
+.tablet-tilt{transform-origin:160px 198px;animation:tabletWrite 1.1s ease-in-out infinite alternate}
+.stylus{transform-origin:205px 168px;animation:stylusMove .35s ease-in-out infinite alternate}
+@keyframes scribeReveal{0%{opacity:0;transform:translateY(30px) scale(.7)}70%{opacity:1;transform:translateY(-5px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes scribeBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes tabletWrite{from{transform:rotate(-1deg)}to{transform:rotate(1.5deg)}}
+@keyframes stylusMove{from{transform:rotate(-5deg)}to{transform:rotate(7deg)}}
+@keyframes sparkle{0%,100%{opacity:.5;transform:scale(.95)}50%{opacity:1;transform:scale(1.08)}}
+
+/* Decoración lateral babilónica: tablillas, palmeras y ladrillos */
+.page-frame{position:relative}
+.side-art{position:absolute;top:0;bottom:0;width:64px;pointer-events:none;display:flex;flex-direction:column;justify-content:space-around;align-items:center;z-index:2;overflow:hidden}
+.side-art.left{left:0}.side-art.right{right:0}
+.tablet{width:46px;height:66px;background:linear-gradient(135deg,#d8b16b,#a87532);border:3px solid #785023;border-radius:7px;box-shadow:inset 0 0 0 3px #e9cb8e;display:flex;align-items:center;justify-content:center;color:#68431d;font-size:21px;line-height:1;transform:rotate(-4deg);animation:tabletFloat 4s ease-in-out infinite}
+.side-art.right .tablet{transform:rotate(4deg);animation-delay:-2s}
+.palm{font-size:39px;filter:drop-shadow(1px 2px 0 #a87837);animation:palmSway 3s ease-in-out infinite}
+.zigzag{color:#17476c;font-size:26px;line-height:1.3;text-shadow:1px 1px #d6a74d;animation:glow 2.8s ease-in-out infinite}
+@keyframes tabletFloat{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -7px;rotate:2deg}}
+@keyframes palmSway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes glow{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+@media(max-width:650px){.side-art{width:25px;opacity:.9}.tablet{width:21px;height:38px;border-width:2px;font-size:11px;border-radius:4px}.palm{font-size:20px}.zigzag{font-size:14px}main{padding-left:clamp(26px,6vw,38px);padding-right:clamp(26px,6vw,38px)}}
+@media(prefers-reduced-motion:reduce){.tablet,.palm,.zigzag{animation:none!important}}
+
+@media(max-width:600px){body{padding:8px 5px}main{padding:12px 8px}.alphabet{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.answers{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.glyph{min-height:45px;gap:2px}.wedge.one{border-left-width:4px;border-right-width:4px;border-top-width:14px}.wedge.ten{border-top-width:6px;border-bottom-width:6px;border-right-width:18px}}
+</style>
+</head>
+<body>
+
+<div class="side-decor side-left" aria-hidden="true">
+  <span class="ornament">𒀭</span><span class="palm">🌴</span>
+  <span class="tablet">𒁹𒂍𒆠</span><span class="brick"></span>
+  <span class="ornament">✦</span>
+</div>
+<div class="side-decor side-right" aria-hidden="true">
+  <span class="ornament">𒆳</span><span class="brick"></span>
+  <span class="tablet">𒀸𒁹𒂍</span><span class="palm">🌴</span>
+  <span class="ornament">✧</span>
+</div>
+
+<main>
+<div class="side-art left" aria-hidden="true">
+  <div class="zigzag">✦<br>◆</div><div class="tablet">𒀭<br>𒁹</div><div class="palm">🌴</div><div class="tablet">𒂍<br>𒆠</div><div class="zigzag">◆<br>✦</div>
+</div>
+<div class="side-art right" aria-hidden="true">
+  <div class="zigzag">◆<br>✦</div><div class="tablet">𒂍<br>𒁹</div><div class="palm">🌴</div><div class="tablet">𒀭<br>𒆠</div><div class="zigzag">✦<br>◆</div>
+</div>
+<div class="floating-motifs" aria-hidden="true">
+  <span>✦</span><span>𒀭</span><span>✧</span><span>◆</span><span>𒁹</span><span>✦</span>
+</div>
+<header>
+<h1>Descifrá el mensaje babilónico</h1>
+<p>Cada número representa una letra. Usá el abecedario como referencia y escribí la letra que corresponde a cada escritura cuneiforme.</p>
+<div class="key">
+ <div class="key-item"><span class="wedge one" aria-hidden="true"></span><span><b>1 unidad</b></span></div>
+ <div class="key-item"><span class="wedge ten" aria-hidden="true"></span><span><b>10 unidades</b></span></div>
+</div>
+</header>
+<section aria-labelledby="alphabet-title">
+<h2 id="alphabet-title">Abecedario de referencia</h2>
+<p>Buscá el número que representa cada letra. Las cuñas horizontales valen 10 y las verticales valen 1.</p>
+<div class="alphabet">
+<div class="letter"><b>A</b><span>1</span></div>
+<div class="letter"><b>B</b><span>2</span></div>
+<div class="letter"><b>C</b><span>3</span></div>
+<div class="letter"><b>D</b><span>4</span></div>
+<div class="letter"><b>E</b><span>5</span></div>
+<div class="letter"><b>F</b><span>6</span></div>
+<div class="letter"><b>G</b><span>7</span></div>
+<div class="letter"><b>H</b><span>8</span></div>
+<div class="letter"><b>I</b><span>9</span></div>
+<div class="letter"><b>J</b><span>10</span></div>
+<div class="letter"><b>K</b><span>11</span></div>
+<div class="letter"><b>L</b><span>12</span></div>
+<div class="letter"><b>M</b><span>13</span></div>
+<div class="letter"><b>N</b><span>14</span></div>
+<div class="letter"><b>Ñ</b><span>15</span></div>
+<div class="letter"><b>O</b><span>16</span></div>
+<div class="letter"><b>P</b><span>17</span></div>
+<div class="letter"><b>Q</b><span>18</span></div>
+<div class="letter"><b>R</b><span>19</span></div>
+<div class="letter"><b>S</b><span>20</span></div>
+<div class="letter"><b>T</b><span>21</span></div>
+<div class="letter"><b>U</b><span>22</span></div>
+<div class="letter"><b>V</b><span>23</span></div>
+<div class="letter"><b>W</b><span>24</span></div>
+<div class="letter"><b>X</b><span>25</span></div>
+<div class="letter"><b>Y</b><span>26</span></div>
+<div class="letter"><b>Z</b><span>27</span></div>
+</div>
+</section>
+<section class="activity" aria-labelledby="activity-title">
+<h2 id="activity-title" style="text-align:center">Mensaje secreto</h2>
+<p class="intro">Observá las cuñas, calculá el número y escribí la letra correspondiente en cada casillero. Hay un espacio entre las dos palabras.</p>
+<div class="answers">
+<label class="answer"><div class="glyph" aria-label="Número 10"><span class="wedge ten" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 1" data-index="0"></label>
+<label class="answer"><div class="glyph" aria-label="Número 22"><span class="wedge ten" aria-hidden="true"></span><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 2" data-index="1"></label>
+<label class="answer"><div class="glyph" aria-label="Número 12"><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 3" data-index="2"></label>
+<label class="answer"><div class="glyph" aria-label="Número 9"><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 4" data-index="3"></label>
+<label class="answer"><div class="glyph" aria-label="Número 16"><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 5" data-index="4"></label>
+<div class="word-space" aria-hidden="true"></div>
+<label class="answer"><div class="glyph" aria-label="Número 3"><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 6" data-index="5"></label>
+<label class="answer"><div class="glyph" aria-label="Número 16"><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 7" data-index="6"></label>
+<label class="answer"><div class="glyph" aria-label="Número 19"><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 8" data-index="7"></label>
+<label class="answer"><div class="glyph" aria-label="Número 21"><span class="wedge ten" aria-hidden="true"></span><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 9" data-index="8"></label>
+<label class="answer"><div class="glyph" aria-label="Número 1"><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 10" data-index="9"></label>
+<label class="answer"><div class="glyph" aria-label="Número 27"><span class="wedge ten" aria-hidden="true"></span><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 11" data-index="10"></label>
+<label class="answer"><div class="glyph" aria-label="Número 1"><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 12" data-index="11"></label>
+<label class="answer"><div class="glyph" aria-label="Número 19"><span class="wedge ten" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span><span class="wedge one" aria-hidden="true"></span></div><input type="text" maxlength="1" autocomplete="off" autocapitalize="characters" aria-label="Letra 13" data-index="12"></label>
+</div>
+<button id="check" type="button">Enviar respuesta</button>
+<div id="feedback" role="status" aria-live="polite"></div>
+<div id="scribe-finale" class="scribe-finale" aria-hidden="true">
+  <div class="scribe-sparkles">✦　𒀭　✧　𒁹　✦</div>
+  <svg class="scribe-art" viewBox="0 0 320 245" role="img" aria-label="Ilustración animada de un escriba babilónico escribiendo sobre una tablilla">
+    <ellipse cx="160" cy="222" rx="116" ry="12" fill="#b7833d" opacity=".25"/>
+    <path d="M74 221 Q88 177 122 166 L199 166 Q234 181 246 221Z" fill="#17476c" stroke="#8d642d" stroke-width="4"/>
+    <path d="M117 171 L160 205 L203 171" fill="#f1d18a" stroke="#8d642d" stroke-width="3"/>
+    <path d="M130 82 Q119 42 158 32 Q198 31 203 77 L190 116 L133 112Z" fill="#8f542e" stroke="#5a351e" stroke-width="4"/>
+    <ellipse cx="162" cy="88" rx="39" ry="48" fill="#d99c60" stroke="#5a351e" stroke-width="4"/>
+    <path d="M124 78 Q121 36 160 32 Q197 30 202 72 L190 61 L179 46 Q158 65 126 63Z" fill="#2c2017"/>
+    <path d="M133 85 Q142 77 151 84 M172 84 Q181 77 190 84" fill="none" stroke="#3b2417" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="145" cy="87" r="3.5" fill="#2b1b12"/><circle cx="180" cy="87" r="3.5" fill="#2b1b12"/>
+    <path d="M158 91 L153 103 L163 104" fill="none" stroke="#9d633a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M147 114 Q162 124 178 113" fill="none" stroke="#7a3825" stroke-width="3" stroke-linecap="round"/>
+    <path d="M121 65 Q160 18 201 65 L194 47 Q161 14 132 43Z" fill="#17476c" stroke="#d7ad58" stroke-width="4"/>
+    <path d="M116 167 Q132 145 148 147 L176 147 Q196 146 209 169 L195 192 L160 207 L126 190Z" fill="#f2d18a" stroke="#8d642d" stroke-width="4"/>
+    <path d="M132 154 L160 183 L188 154" fill="none" stroke="#b17b31" stroke-width="3"/>
+    <path d="M133 151 Q109 159 104 181 L143 199" fill="none" stroke="#d99c60" stroke-width="15" stroke-linecap="round"/>
+    <path d="M188 151 Q213 158 220 178 L194 193" fill="none" stroke="#d99c60" stroke-width="15" stroke-linecap="round"/>
+    <g class="tablet-tilt">
+      <rect x="111" y="174" width="99" height="48" rx="6" fill="#c9964e" stroke="#6c461f" stroke-width="4"/>
+      <rect x="118" y="180" width="85" height="36" rx="3" fill="#e2bc73" stroke="#f5dda4" stroke-width="2"/>
+      <path d="M129 189 l8 -4 l-3 8 M146 189 l8 -4 l-3 8 M163 189 l8 -4 l-3 8 M130 202 l8 -4 l-3 8 M151 202 l8 -4 l-3 8 M174 202 l8 -4 l-3 8" stroke="#70491f" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <path class="stylus" d="M204 168 L229 137" stroke="#4b2d18" stroke-width="5" stroke-linecap="round"/>
+    <path d="M226 140 L232 131 L232 143Z" fill="#b7833d"/>
+    <path d="M76 111 Q57 93 68 75 M245 112 Q264 94 253 75" fill="none" stroke="#d49a25" stroke-width="4" stroke-linecap="round"/>
+    <text x="160" y="17" text-anchor="middle" font-size="14" font-weight="bold" fill="#17476c">¡MENSAJE DESCIFRADO!</text>
+  </svg>
+  <div class="scribe-caption">¡El escriba de Babilonia te felicita!</div>
+</div>
+
+</section>
+<footer>Cuando lo descifres, acercate al stand así te regalamos un souvenir o dulces.</footer>
+</main>
+<script>
+const secret = ['J','U','L','I','O','C','O','R','T','A','Z','A','R'];
+document.getElementById('check').addEventListener('click', () => {
+ const inputs = [...document.querySelectorAll('input[data-index]')];
+ let correct = 0;
+ inputs.forEach((input, i) => {
+   const value = input.value.trim().toLocaleUpperCase('es-AR');
+   if (value === secret[i]) {
+     correct++;
+     input.style.borderColor = '#24753a';
+     input.style.background = '#e7f6e9';
+   } else {
+     input.style.borderColor = '#a32720';
+     input.style.background = '#ffebea';
+   }
+ });
+ const feedback = document.getElementById('feedback');
+ if (correct === secret.length) {
+   feedback.textContent = '¡Excelente! ¡Descifraste el mensaje: JULIO CORTÁZAR!';
+   feedback.style.color = '#17652d';
+   const finale = document.getElementById('scribe-finale');
+   finale.classList.add('show');
+   finale.setAttribute('aria-hidden', 'false');
+   document.querySelector('.activity').classList.remove('success-pulse');
+   void document.querySelector('.activity').offsetWidth;
+   document.querySelector('.activity').classList.add('success-pulse');
+   launchConfetti();
+ } else {
+   const finale = document.getElementById('scribe-finale');
+   finale.classList.remove('show');
+   finale.setAttribute('aria-hidden', 'true');
+   feedback.textContent = `Todavía no: acertaste ${correct} de ${secret.length} letras. Revisá las cuñas y volvé a intentarlo.`;
+   feedback.style.color = '#8c251d';
+ }
+});
+function launchConfetti() {
+ const symbols = ['✦','◆','★','✧','𒀭'];
+ for (let i = 0; i < 65; i++) {
+   const piece = document.createElement('span');
+   piece.className = 'confetti-piece';
+   piece.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+   piece.style.left = Math.random() * 100 + 'vw';
+   piece.style.animationDelay = Math.random() * 0.9 + 's';
+   piece.style.color = ['#d49a25','#17476c','#a32720','#f0c75e'][i % 4];
+   document.body.appendChild(piece);
+   setTimeout(() => piece.remove(), 4000);
+ }
+}
+document.querySelectorAll('input[data-index]').forEach((input, i, all) => {
+ input.addEventListener('input', () => {
+   input.value = input.value.toLocaleUpperCase('es-AR').slice(0,1);
+   if (input.value && all[i+1]) all[i+1].focus();
+ });
+ input.addEventListener('keydown', e => {
+   if (e.key === 'Backspace' && !input.value && all[i-1]) all[i-1].focus();
+ });
+});
+</script>
+</body>
+</html>
